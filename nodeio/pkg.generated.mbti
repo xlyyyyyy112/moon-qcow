@@ -1,0 +1,36 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xlyyyyyy112/moon-qcow/nodeio"
+
+import {
+  "xlyyyyyy112/moon-qcow",
+}
+
+// Values
+pub fn create_file(String) -> FileState raise @moon-qcow.QcowError
+
+pub fn open_disk(String, allow_backing? : Bool, limits? : @moon-qcow.Limits) -> Disk raise @moon-qcow.QcowError
+
+pub fn open_file(String) -> FileState raise @moon-qcow.QcowError
+
+// Errors
+
+// Types and methods
+pub struct Disk {
+  image : @moon-qcow.Image
+  files : Array[FileState]
+}
+pub fn Disk::close(Self) -> Unit raise @moon-qcow.QcowError
+pub fn Disk::image(Self) -> @moon-qcow.Image
+
+#external
+pub type FileState
+pub fn FileState::close(Self) -> Unit raise @moon-qcow.QcowError
+pub fn FileState::path(Self) -> String
+pub fn FileState::resize(Self, UInt64) -> Unit raise @moon-qcow.QcowError
+pub fn FileState::source(Self) -> @moon-qcow.Source
+pub fn FileState::sync(Self) -> Unit raise @moon-qcow.QcowError
+pub fn FileState::write_at(Self, UInt64, Bytes) -> Unit raise @moon-qcow.QcowError
+
+// Type aliases
+
+// Traits
