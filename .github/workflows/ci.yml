@@ -1,0 +1,64 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  MOONBIT_INSTALL_VERSION: '0.10.18+6c83a7f62'
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$MOONBIT_INSTALL_VERSION"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          "$env:USERPROFILE\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+      - run: moon version --all
+      - run: moon check --target all --deny-warn
+      - run: moon build --target all --deny-warn
+      - run: moon test --target all --deny-warn
+      - run: moon test --target all --release --deny-warn
+      - run: moon run examples/basic
+      - run: moon build --target js --release --deny-warn
+      - run: node _build/js/release/build/cmd/main/main.js --help
+      - run: moon fmt --check
+      - run: moon info --target all
+      - run: git diff --exit-code
+      - run: python scripts/count_lines.py
+      - name: Install QEMU oracle
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y qemu-utils
+      - name: Real image interoperability
+        if: runner.os == 'Linux'
+        run: python scripts/interop.py --report reports/interop-ci.json
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: qemu-interop
+          path: reports/interop-ci.json
