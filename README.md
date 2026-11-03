@@ -4,7 +4,23 @@
 
 这个库适合离线镜像转换、备份数据读取，以及文件系统工具的底层数据接入。QCOW2 的簇映射、backing 链、快照、引用计数和脏位图处理由 MoonBit 完成；文件命令行使用 Node.js 的同步随机 I/O。读取已有镜像时不会调用 QEMU，QEMU 只在独立对照测试中使用。
 
-源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。模块名为 `xlyyyyyy112/moon-qcow`，尚未发布到 Mooncakes。
+源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。已发布到 Mooncakes，版本为 `0.1.0`。
+
+## 安装
+
+在已有 MoonBit 项目中添加依赖：
+
+```sh
+moon add xlyyyyyy112/moon-qcow@0.1.0
+```
+
+随后在调用方 `moon.pkg` 中导入 `"xlyyyyyy112/moon-qcow" @qcow`。运行本仓库的命令行和示例时，先克隆仓库并更新依赖：
+
+```sh
+git clone https://github.com/xlyyyyyy112/moon-qcow.git
+cd moon-qcow
+moon update
+```
 
 ## 运行
 
@@ -58,6 +74,8 @@ let cursor = image.copy_cursor(0UL, image.virtual_size())
 
 `CopyCursor` 和 `BackupCursor` 只在写入回调成功后推进进度；失败的块可以对幂等的 write-at 目标重试。稀疏复制需要调用方保证目标原本为零。进度不是持久化事务，也不提供跨进程断点身份校验。
 
+增量备份相关接口提供脏位图变更范围选择和增量复制能力；备份链管理、备份目录及完整恢复流程由上层应用实现。
+
 ## 已实现范围
 
 - QCOW2 v2/v3、512 字节至 2 MiB 簇、64 位逻辑偏移。
@@ -87,7 +105,9 @@ python scripts/interop.py --report reports/interop-local.json
 python scripts/count_lines.py
 ```
 
-脚本用 QEMU 生成测试镜像，以 RAW 文件或 QEMU 导出结果为独立对照，执行逐字节比较、非对齐读取、稀疏导出、backing 链、快照、脏位图及 4 GiB 以上偏移测试。测试数据在临时目录生成，不需要下载第三方磁盘镜像。具体记录见 `reports/interop-local.json`。CI 工作流已经配置，远端运行状态需在推送后确认。
+脚本用 QEMU 生成测试镜像，以 RAW 文件或 QEMU 导出结果为独立对照，执行逐字节比较、非对齐读取、稀疏导出、backing 链、快照、脏位图及 4 GiB 以上偏移测试。测试数据在临时目录生成，不需要下载第三方磁盘镜像。具体记录见 `reports/interop-local.json`。
+
+[提交 `9d4b94f` 的三平台 CI](https://github.com/xlyyyyyy112/moon-qcow/actions/runs/41658068703) 已通过检查、构建、Debug/Release 测试、示例、格式与接口一致性检查，Linux 任务同时通过 QEMU 互操作测试并上传结果。后续提交状态见 [Actions](https://github.com/xlyyyyyy112/moon-qcow/actions)。
 
 ## 来源与许可证
 

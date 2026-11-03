@@ -38,8 +38,14 @@ Windows 主机使用独立的 MoonBit 0.10.18 工具链。native 测试在 Ubunt
 
 ## 状态边界
 
-本地开发与验证已经完成。源码将推送至 `https://github.com/xlyyyyyy112/moon-qcow`，
-尚未发布 Mooncakes。CI 文件已经配置，远端 Actions 结果以实际运行记录为准。
+源码已推送至 [GitHub](https://github.com/xlyyyyyy112/moon-qcow)，默认分支为 `main`。
+模块 `xlyyyyyy112/moon-qcow@0.1.0` 已于 2026-11-03 发布到 Mooncakes，
+可用 `moon view xlyyyyyy112/moon-qcow` 回查，用 `moon add xlyyyyyy112/moon-qcow@0.1.0` 安装。
+[提交 `9d4b94f` 的 CI](https://github.com/xlyyyyyy112/moon-qcow/actions/runs/41658068703)
+在 Windows、macOS、Ubuntu 全部通过，包括检查、构建、Debug/Release 测试与示例；
+Linux 同时执行 QEMU 互操作测试，结果可从该次运行的 `qemu-interop` 产物下载。
+发布使用全局 MoonBit 0.10.19，打包和解包校验通过；该版本对 `derive(...)`
+有弃用提示。项目保留该写法以兼容 CI 固定的 MoonBit 0.10.18。
 本记录不是赛事组委会验收结论。
 
 不支持的格式特性、审计范围、资源上限见 README。`audit` 不等同完整的 QEMU
