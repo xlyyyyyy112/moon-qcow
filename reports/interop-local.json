@@ -1,0 +1,117 @@
+{
+  "qemu": "qemu-img version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+  "cases": [
+    {
+      "name": "v2-4k",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "v3-512",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "v3-64k",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "v3-2m",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "extended-l2",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "deflate",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "backing-zero-growth",
+      "bytes": 10485760,
+      "sha256": "cd1e450bce530072184f3a4738a883de60c7a038b5eafe79fb5e3562d208b03a",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "two-layer-backing",
+      "bytes": 10485760,
+      "sha256": "3c9fd41855ec274c690e4cbd1a00d3004bb307a92b0e8c4128add89284550980",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "raw-backing",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "persistent-dirty-bitmap",
+      "dirty_ranges": true,
+      "audit": true
+    },
+    {
+      "name": "internal-snapshot",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
+      "name": "offset-above-4GiB",
+      "read": true
+    }
+  ],
+  "image_cases": 12,
+  "negative_checks": 6,
+  "elapsed_seconds": 46.313
+}

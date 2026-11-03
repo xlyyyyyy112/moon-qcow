@@ -1,0 +1,154 @@
+{
+  "production_effective": 4130,
+  "production_physical": 4720,
+  "implementation_without_examples": 4116,
+  "examples_effective": 14,
+  "tests_effective": 763,
+  "files": [
+    {
+      "file": "audit.mbt",
+      "effective": 252,
+      "test": false
+    },
+    {
+      "file": "backup.mbt",
+      "effective": 226,
+      "test": false
+    },
+    {
+      "file": "bitmap_validation.mbt",
+      "effective": 75,
+      "test": false
+    },
+    {
+      "file": "bitmaps.mbt",
+      "effective": 275,
+      "test": false
+    },
+    {
+      "file": "block_device.mbt",
+      "effective": 162,
+      "test": false
+    },
+    {
+      "file": "cache.mbt",
+      "effective": 64,
+      "test": false
+    },
+    {
+      "file": "cmd/main/main.mbt",
+      "effective": 303,
+      "test": false
+    },
+    {
+      "file": "compare.mbt",
+      "effective": 142,
+      "test": false
+    },
+    {
+      "file": "compression.mbt",
+      "effective": 9,
+      "test": false
+    },
+    {
+      "file": "cursor_wbtest.mbt",
+      "effective": 29,
+      "test": true
+    },
+    {
+      "file": "examples/basic/main.mbt",
+      "effective": 14,
+      "test": false
+    },
+    {
+      "file": "extents.mbt",
+      "effective": 251,
+      "test": false
+    },
+    {
+      "file": "format.mbt",
+      "effective": 140,
+      "test": false
+    },
+    {
+      "file": "header.mbt",
+      "effective": 232,
+      "test": false
+    },
+    {
+      "file": "image.mbt",
+      "effective": 327,
+      "test": false
+    },
+    {
+      "file": "layout.mbt",
+      "effective": 181,
+      "test": false
+    },
+    {
+      "file": "map_index.mbt",
+      "effective": 145,
+      "test": false
+    },
+    {
+      "file": "metadata_wbtest.mbt",
+      "effective": 254,
+      "test": true
+    },
+    {
+      "file": "nodeio/files.mbt",
+      "effective": 291,
+      "test": false
+    },
+    {
+      "file": "reader_wbtest.mbt",
+      "effective": 446,
+      "test": true
+    },
+    {
+      "file": "refcount_check.mbt",
+      "effective": 143,
+      "test": false
+    },
+    {
+      "file": "refcount_scope_wbtest.mbt",
+      "effective": 12,
+      "test": true
+    },
+    {
+      "file": "refcounts.mbt",
+      "effective": 234,
+      "test": false
+    },
+    {
+      "file": "reports.mbt",
+      "effective": 183,
+      "test": false
+    },
+    {
+      "file": "snapshots.mbt",
+      "effective": 156,
+      "test": false
+    },
+    {
+      "file": "source.mbt",
+      "effective": 146,
+      "test": false
+    },
+    {
+      "file": "source_metrics.mbt",
+      "effective": 37,
+      "test": false
+    },
+    {
+      "file": "stream.mbt",
+      "effective": 142,
+      "test": false
+    },
+    {
+      "file": "tests/public/api_test.mbt",
+      "effective": 22,
+      "test": true
+    }
+  ]
+}
