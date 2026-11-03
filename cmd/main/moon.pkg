@@ -1,0 +1,13 @@
+import {
+  "xlyyyyyy112/moon-qcow" @qcow,
+  "xlyyyyyy112/moon-qcow/nodeio",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"
+
+options(
+  link: { "js": { "format": "cjs" } },
+)
