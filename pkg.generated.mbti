@@ -1,0 +1,483 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xlyyyyyy112/moon-qcow"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn backing_filename(Source, limits? : Limits) -> String? raise QcowError
+
+pub fn backing_format(Source, limits? : Limits) -> String? raise QcowError
+
+pub fn bytes_are_zero(BytesView) -> Bool
+
+pub fn clip_extents(ArrayView[Extent], UInt64, UInt64) -> Array[Extent] raise QcowError
+
+pub fn concatenate_sources(ArrayView[Source], max_sources? : Int32) -> Source raise QcowError
+
+pub fn dirty_blocks(ArrayView[Difference], UInt64, UInt64) -> Array[Difference] raise QcowError
+
+pub fn feature_names(Source) -> Array[FeatureName] raise QcowError
+
+pub fn header_extensions(Source, limits? : Limits) -> Array[HeaderExtension] raise QcowError
+
+pub fn hex_offset(UInt64) -> String
+
+pub fn hexdump(BytesView, offset? : UInt64) -> String raise QcowError
+
+pub fn inspect_header(Source, limits? : Limits) -> Header raise QcowError
+
+pub fn merge_differences(ArrayView[Difference]) -> Array[Difference] raise QcowError
+
+pub fn open(Bytes, backing? : Backing, limits? : Limits) -> Image raise QcowError
+
+pub fn open_source(Source, backing? : Backing, limits? : Limits) -> Image raise QcowError
+
+pub fn parse_size(String) -> UInt64 raise QcowError
+
+pub fn region_union_size(ArrayView[HostRegion]) -> UInt64 raise QcowError
+
+// Errors
+pub(all) suberror QcowError {
+  Invalid(String)
+  Unsupported(String)
+  OutOfBounds
+  MissingBacking
+  LimitExceeded
+  Io(String)
+} derive(@debug.Debug)
+pub fn QcowError::message(Self) -> String
+#deprecated
+pub fn QcowError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub(all) struct AllocationStats {
+  virtual_bytes : UInt64
+  physical_bytes : UInt64
+  local_data_bytes : UInt64
+  explicit_zero_bytes : UInt64
+  backing_or_hole_bytes : UInt64
+  compressed_guest_bytes : UInt64
+  compressed_storage_bytes : UInt64
+  mapped_records : Int32
+}
+pub fn AllocationStats::json(Self) -> Json
+
+pub(all) struct AuditIssue {
+  severity : String
+  code : String
+  offset : UInt64
+  message : String
+}
+pub fn AuditIssue::json(Self) -> Json
+
+pub(all) struct AuditReport {
+  issues : Array[AuditIssue]
+  scanned_bytes : UInt64
+  mappings : Int32
+  complete : Bool
+}
+pub fn AuditReport::json(Self) -> Json
+pub fn AuditReport::ok(Self) -> Bool
+
+pub(all) enum Backing {
+  Raw(Source)
+  Qcow(Image)
+}
+
+pub struct BackupCursor {
+  image : Image
+  plan : BackupPlan
+  chunk_size : Int32
+  mut range_index : Int32
+  mut within : UInt64
+  mut copied : UInt64
+  mut busy : Bool
+}
+pub fn BackupCursor::progress(Self) -> BackupProgress
+pub fn BackupCursor::step(Self, Int32, (UInt64, Bytes) -> Unit raise QcowError) -> BackupProgress raise QcowError
+
+pub struct BackupPlan {
+  virtual_size : UInt64
+  ranges : Array[Difference]
+  total_bytes : UInt64
+}
+pub fn BackupPlan::aligned(Self, UInt64) -> Self raise QcowError
+pub fn BackupPlan::chunk_count(Self, UInt64) -> UInt64 raise QcowError
+pub fn BackupPlan::complement(Self) -> Self raise QcowError
+pub fn BackupPlan::contains(Self, UInt64) -> Bool
+pub fn BackupPlan::intersection(Self, Self) -> Self raise QcowError
+pub fn BackupPlan::json(Self) -> Json
+pub fn BackupPlan::new(UInt64, ArrayView[Difference]) -> Self raise QcowError
+pub fn BackupPlan::ranges(Self) -> Array[Difference]
+pub fn BackupPlan::subtract(Self, Self) -> Self raise QcowError
+pub fn BackupPlan::total_bytes(Self) -> UInt64
+pub fn BackupPlan::union(Self, Self) -> Self raise QcowError
+pub fn BackupPlan::virtual_size(Self) -> UInt64
+pub fn BackupPlan::window(Self, UInt64, UInt64) -> Self raise QcowError
+
+pub(all) struct BackupProgress {
+  range_index : Int32
+  next_offset : UInt64
+  copied_bytes : UInt64
+  total_bytes : UInt64
+  complete : Bool
+}
+
+pub(all) struct BitmapValidation {
+  name : String
+  granules : UInt64
+  dirty_granules : UInt64
+  allocated_blocks : UInt64
+}
+pub fn BitmapValidation::json(Self) -> Json
+
+pub struct BlockCache {
+  blocks : Map[(UInt64, Int32), Bytes]
+  mut queue : Array[(UInt64, Int32)]
+  mut head : Int32
+  mut bytes : Int32
+  budget : Int32
+  mut hits : UInt64
+  mut misses : UInt64
+}
+
+pub struct BlockDevice {
+  image : Image
+  sector_size : Int32
+  sector_count : UInt64
+}
+pub fn BlockDevice::read_sectors(Self, UInt64, Int32) -> Bytes raise QcowError
+pub fn BlockDevice::sector_count(Self) -> UInt64
+pub fn BlockDevice::sector_size(Self) -> Int32
+pub fn BlockDevice::slice(Self, UInt64, UInt64) -> BlockSlice raise QcowError
+
+pub struct BlockSlice {
+  device : BlockDevice
+  first_lba : UInt64
+  sectors : UInt64
+}
+pub fn BlockSlice::read_sectors(Self, UInt64, Int32) -> Bytes raise QcowError
+pub fn BlockSlice::sector_count(Self) -> UInt64
+
+pub(all) struct ByteRange {
+  offset : UInt64
+  length : UInt64
+}
+pub fn ByteRange::end(Self) -> UInt64 raise QcowError
+pub fn ByteRange::intersection(Self, Self) -> Self? raise QcowError
+pub fn ByteRange::split(Self, UInt64, Int32) -> Array[Self] raise QcowError
+
+pub(all) struct CacheStats {
+  bytes : Int32
+  blocks : Int32
+  hits : UInt64
+  misses : UInt64
+}
+pub fn CacheStats::json(Self) -> Json
+
+pub(all) struct ChainLayer {
+  depth : Int32
+  format : String
+  virtual_size : UInt64
+  physical_size : UInt64
+  backing_filename : String?
+  version : Int32
+}
+pub fn ChainLayer::json(Self) -> Json
+
+pub(all) struct CompareReport {
+  compared_bytes : UInt64
+  different_bytes : UInt64
+  ranges : Array[Difference]
+  complete : Bool
+}
+pub fn CompareReport::json(Self) -> Json
+
+pub struct CopyCursor {
+  image : Image
+  start : UInt64
+  end : UInt64
+  chunk_size : Int32
+  sparse : Bool
+  mut next : UInt64
+  mut written : UInt64
+  mut skipped : UInt64
+  mut busy : Bool
+}
+pub fn CopyCursor::progress(Self) -> CopyProgress
+pub fn CopyCursor::step(Self, Int32, (UInt64, Bytes) -> Unit raise QcowError) -> CopyProgress raise QcowError
+
+pub(all) struct CopyProgress {
+  start : UInt64
+  next_offset : UInt64
+  end : UInt64
+  written_bytes : UInt64
+  skipped_zero_bytes : UInt64
+  complete : Bool
+}
+pub fn CopyProgress::json(Self) -> Json
+
+pub(all) struct Difference {
+  offset : UInt64
+  length : UInt64
+}
+pub fn Difference::json(Self) -> Json
+
+pub(all) struct DirtyBitmap {
+  name : String
+  table_offset : UInt64
+  table_entries : UInt64
+  flags : UInt64
+  granularity_bits : Int32
+  extra_length : Int32
+  directory_offset : UInt64
+  directory_length : UInt64
+  consistent : Bool
+}
+pub fn DirtyBitmap::granularity(Self) -> UInt64
+pub fn DirtyBitmap::json(Self) -> Json
+
+pub(all) struct Extent {
+  offset : UInt64
+  length : UInt64
+  kind : ExtentKind
+  physical : UInt64?
+  stored_length : Int32
+}
+pub fn Extent::json(Self) -> Json
+
+pub(all) enum ExtentKind {
+  Data
+  Zero
+  Unallocated
+  Compressed
+}
+pub fn ExtentKind::name(Self) -> String
+
+pub(all) struct FeatureName {
+  feature_type : Int32
+  bit : Int32
+  name : String
+}
+pub fn FeatureName::json(Self) -> Json
+
+pub(all) struct Header {
+  version : Int32
+  backing_offset : UInt64
+  backing_name_length : Int32
+  cluster_bits : Int32
+  virtual_size : UInt64
+  l1_entries : UInt64
+  l1_offset : UInt64
+  refcount_offset : UInt64
+  refcount_clusters : UInt64
+  snapshot_count : Int32
+  snapshot_offset : UInt64
+  incompatible : UInt64
+  compatible : UInt64
+  autoclear : UInt64
+  refcount_order : Int32
+  header_length : Int32
+}
+pub fn Header::cluster_count(Self) -> UInt64
+pub fn Header::cluster_size(Self) -> Int32
+pub fn Header::extended_l2(Self) -> Bool
+pub fn Header::json(Self) -> Json
+pub fn Header::l2_entries(Self) -> UInt64
+
+pub(all) struct HeaderExtension {
+  kind : UInt64
+  offset : UInt64
+  data : Bytes
+}
+pub fn HeaderExtension::json(Self) -> Json
+
+pub(all) struct HostRegion {
+  offset : UInt64
+  length : UInt64
+  role : String
+}
+pub fn HostRegion::json(Self) -> Json
+
+pub struct Image {
+  source : Source
+  header : Header
+  backing : Backing?
+  depth : Int32
+  limits : Limits
+  cache : BlockCache
+}
+pub fn Image::allocation_stats(Self) -> AllocationStats raise QcowError
+pub fn Image::as_source(Self) -> Source
+pub fn Image::audit(Self, verify_data? : Bool, max_issues? : Int32) -> AuditReport raise QcowError
+pub fn Image::backup_cursor(Self, BackupPlan, chunk_size? : Int32) -> BackupCursor raise QcowError
+pub fn Image::bitmap_dirty(Self, String, UInt64) -> Bool raise QcowError
+pub fn Image::bitmap_plan(Self, String) -> BackupPlan raise QcowError
+pub fn Image::bitmap_ranges(Self, String) -> Array[Difference] raise QcowError
+pub fn Image::bitmap_regions(Self) -> Array[HostRegion] raise QcowError
+pub fn Image::bitmaps(Self) -> Array[DirtyBitmap] raise QcowError
+pub fn Image::block_device(Self, sector_size? : Int32) -> BlockDevice raise QcowError
+pub fn Image::cache_stats(Self) -> CacheStats
+pub fn Image::chain(Self) -> Array[ChainLayer] raise QcowError
+pub fn Image::chain_depth(Self) -> Int32
+pub fn Image::check_refcounts(Self, max_mismatches? : Int32) -> RefcountCheck raise QcowError
+pub fn Image::clear_cache(Self) -> Unit
+pub fn Image::cluster_size(Self) -> Int32
+pub fn Image::compare_image(Self, Self, chunk_size? : Int32, max_ranges? : Int32) -> CompareReport raise QcowError
+pub fn Image::compare_raw(Self, Source, chunk_size? : Int32, max_ranges? : Int32) -> CompareReport raise QcowError
+pub fn Image::copy_cursor(Self, UInt64, UInt64, chunk_size? : Int32, sparse? : Bool) -> CopyCursor raise QcowError
+pub fn Image::copy_to(Self, (UInt64, Bytes) -> Unit raise QcowError, chunk_size? : Int32, sparse? : Bool, cancelled? : () -> Bool) -> CopyProgress raise QcowError
+pub fn Image::extent_at(Self, UInt64) -> Extent raise QcowError
+pub fn Image::header(Self) -> Header
+pub fn Image::layout_issues(Self, max_issues? : Int32) -> Array[AuditIssue] raise QcowError
+pub fn Image::map_index(Self) -> MapIndex raise QcowError
+pub fn Image::map_range(Self, UInt64, UInt64) -> Array[Extent] raise QcowError
+pub fn Image::metadata_at(Self, UInt64) -> Array[HostRegion] raise QcowError
+pub fn Image::metadata_regions(Self) -> Array[HostRegion] raise QcowError
+pub fn Image::metadata_size(Self) -> UInt64 raise QcowError
+pub fn Image::open_snapshot(Self, String) -> Self raise QcowError
+pub fn Image::physical_size(Self) -> UInt64
+pub fn Image::read_at(Self, UInt64, Int32) -> Bytes raise QcowError
+pub fn Image::read_many(Self, ArrayView[ByteRange], max_total? : UInt64) -> Array[Bytes] raise QcowError
+pub fn Image::reader(Self, UInt64, UInt64) -> Reader raise QcowError
+pub fn Image::refcount_at(Self, UInt64) -> UInt64 raise QcowError
+pub fn Image::refcount_runs(Self) -> Array[RefcountRun] raise QcowError
+pub fn Image::refcount_stats(Self) -> RefcountStats raise QcowError
+pub fn Image::references_to(Self, UInt64, UInt64) -> Array[Reference] raise QcowError
+pub fn Image::resolve_at(Self, UInt64) -> ResolvedExtent raise QcowError
+pub fn Image::resolved_map(Self, UInt64, UInt64) -> Array[ResolvedExtent] raise QcowError
+pub fn Image::snapshots(Self) -> Array[Snapshot] raise QcowError
+pub fn Image::source_at_depth(Self, Int32) -> Source raise QcowError
+pub fn Image::validate_bitmap(Self, String) -> BitmapValidation raise QcowError
+pub fn Image::virtual_size(Self) -> UInt64
+pub fn Image::visit_extents(Self, UInt64, UInt64, (Extent) -> Bool raise QcowError) -> Bool raise QcowError
+
+pub(all) struct Limits {
+  max_read : Int32
+  max_chain : Int32
+  max_l1_entries : Int32
+  max_extensions : Int32
+  max_snapshots : Int32
+  max_map_entries : Int32
+  max_scan_clusters : Int32
+  cache_bytes : Int32
+}
+pub fn Limits::default() -> Self
+
+pub struct MapIndex {
+  virtual_size : UInt64
+  records : Array[Extent]
+}
+pub fn MapIndex::json(Self) -> Json
+pub fn MapIndex::lookup(Self, UInt64) -> Extent raise QcowError
+pub fn MapIndex::new(UInt64, ArrayView[Extent]) -> Self raise QcowError
+pub fn MapIndex::query(Self, UInt64, UInt64) -> Array[Extent] raise QcowError
+pub fn MapIndex::record_count(Self) -> Int32
+pub fn MapIndex::records(Self) -> Array[Extent]
+pub fn MapIndex::stored_plan(Self) -> BackupPlan raise QcowError
+pub fn MapIndex::unallocated_plan(Self) -> BackupPlan raise QcowError
+
+pub struct Reader {
+  image : Image
+  start : UInt64
+  length : UInt64
+  mut position : UInt64
+}
+pub fn Reader::position(Self) -> UInt64
+pub fn Reader::read(Self, Int32) -> Bytes raise QcowError
+pub fn Reader::remaining(Self) -> UInt64
+pub fn Reader::seek(Self, UInt64) -> Unit raise QcowError
+
+pub(all) struct RefcountCheck {
+  checked_clusters : UInt64
+  mismatches : Array[RefcountMismatch]
+  complete : Bool
+}
+pub fn RefcountCheck::json(Self) -> Json
+pub fn RefcountCheck::ok(Self) -> Bool
+
+pub(all) struct RefcountMismatch {
+  offset : UInt64
+  stored : UInt64
+  expected : UInt64
+}
+pub fn RefcountMismatch::json(Self) -> Json
+
+pub(all) struct RefcountRun {
+  offset : UInt64
+  length : UInt64
+  count : UInt64
+}
+pub fn RefcountRun::json(Self) -> Json
+
+pub(all) struct RefcountStats {
+  host_clusters : UInt64
+  unreferenced_clusters : UInt64
+  exclusive_clusters : UInt64
+  shared_clusters : UInt64
+  max_refcount : UInt64
+}
+pub fn RefcountStats::json(Self) -> Json
+
+pub(all) struct Reference {
+  guest_offset : UInt64
+  guest_length : UInt64
+  physical_offset : UInt64
+  physical_length : UInt64
+  compressed : Bool
+}
+pub fn Reference::json(Self) -> Json
+
+pub(all) struct ResolvedExtent {
+  offset : UInt64
+  length : UInt64
+  kind : ExtentKind
+  physical : UInt64?
+  stored_length : Int32
+  depth : Int32
+}
+pub fn ResolvedExtent::json(Self) -> Json
+
+pub(all) struct Snapshot {
+  index : Int32
+  id : String
+  name : String
+  l1_offset : UInt64
+  l1_entries : UInt64
+  virtual_size : UInt64
+  date_seconds : UInt64
+  date_nanoseconds : UInt64
+  vm_clock_nanoseconds : UInt64
+  vm_state_size : UInt64
+  entry_offset : UInt64
+  entry_length : UInt64
+}
+pub fn Snapshot::json(Self) -> Json
+
+pub struct Source {
+  size : UInt64
+  read : (UInt64, Int32) -> Bytes raise QcowError
+}
+pub fn Source::check_range(Self, UInt64, UInt64) -> Unit raise QcowError
+pub fn Source::from_bytes(Bytes) -> Self
+pub fn Source::new(UInt64, (UInt64, Int32) -> Bytes raise QcowError) -> Self
+pub fn Source::read_at(Self, UInt64, Int32) -> Bytes raise QcowError
+pub fn Source::size(Self) -> UInt64
+pub fn Source::slice(Self, UInt64, UInt64) -> Self raise QcowError
+
+pub struct SourceMetrics {
+  mut reads : UInt64
+  mut bytes : UInt64
+  mut failed : UInt64
+  mut largest : Int32
+}
+pub fn SourceMetrics::json(Self) -> Json
+pub fn SourceMetrics::new() -> Self
+pub fn SourceMetrics::reset(Self) -> Unit
+pub fn SourceMetrics::wrap(Self, Source) -> Source
+
+// Type aliases
+
+// Traits
