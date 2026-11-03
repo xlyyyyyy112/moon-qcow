@@ -1,0 +1,5 @@
+import {
+  "xlyyyyyy112/moon-qcow" @qcow,
+}
+
+pkgtype(kind: "executable")
