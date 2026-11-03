@@ -40,6 +40,8 @@ jobs:
           irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
           "$env:USERPROFILE\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
       - run: moon version --all
+      - name: Update Mooncakes registry
+        run: moon update
       - run: moon check --target all --deny-warn
       - run: moon build --target all --deny-warn
       - run: moon test --target all --deny-warn
