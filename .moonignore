@@ -1,0 +1,5 @@
+/.github/
+/fixtures/generated/
+/reports/interop-ci.json
+__pycache__/
+*.pyc
