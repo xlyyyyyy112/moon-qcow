@@ -4,7 +4,7 @@
 
 这个库适合离线镜像转换、备份数据读取，以及文件系统工具的底层数据接入。QCOW2 的簇映射、backing 链、快照、引用计数和脏位图处理由 MoonBit 完成；文件命令行使用 Node.js 的同步随机 I/O。读取已有镜像时不会调用 QEMU，QEMU 只在独立对照测试中使用。
 
-源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。修复版发布到 Mooncakes 的版本为 `0.1.1`。
+源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。修复版发布到 Mooncakes 的版本为 `0.1.2`。
 
 本项目的只读兼容目标、加密/外部数据文件/zstd 镜像的处理方式和拒绝条件见[只读兼容范围](docs/只读兼容范围.md)。支持范围按格式特性明确限定，不承诺打开每一种规范有效的 QCOW2 镜像。
 
@@ -13,7 +13,7 @@
 在已有 MoonBit 项目中添加依赖：
 
 ```sh
-moon add xlyyyyyy112/moon-qcow@0.1.1
+moon add xlyyyyyy112/moon-qcow@0.1.2
 ```
 
 随后在调用方 `moon.pkg` 中导入 `"xlyyyyyy112/moon-qcow" @qcow`。运行本仓库的命令行和示例时，先克隆仓库并更新依赖：
@@ -26,7 +26,7 @@ moon update
 
 ## 运行
 
-验证使用 MoonBit `0.10.18+6c83a7f62`、Node.js 24。47 组测试已在 wasm、wasm-gc、JavaScript、Linux native 的 Debug/Release 模式通过。CI 配置使用相同 MoonBit 版本和 Node.js 22。Python 3.12 用于运行外部对照测试。
+本次验证使用 MoonBit `0.10.19+bee578715`。wasm、wasm-gc、JavaScript 的 Debug/Release 测试各 49 项通过；本机缺少 MSVC，未运行 Windows native 测试。CI 使用相同 MoonBit 版本、Node.js 22 和 Python 3.12，并覆盖各支持目标与 QEMU 镜像互操作。
 
 在项目目录执行：
 
