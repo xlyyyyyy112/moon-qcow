@@ -2,4 +2,8 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/encoding/utf8",
   "moonbit-community/flate",
+  "gaato/zstd",
+  "gaato/codec_bytes",
 }
+
+supported_targets = "native + js + wasm + wasm-gc"

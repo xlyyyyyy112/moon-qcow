@@ -1,30 +1,25 @@
 # MoonQCOW 项目申报书
 
-## 基本信息
-
-- 项目名称：MoonQCOW：面向 QCOW2 虚拟磁盘的 MoonBit 只读解析与增量备份库
+**基本信息**
+- 项目名称：MoonQCOW：MoonBit QCOW2 只读解析与增量备份库
 - 参赛者：xlyyyyyy112
 - 联系方式：19257724755
-- GitHub 仓库链接：https://github.com/xlyyyyyy112/moon-qcow
+- GitHub：https://github.com/xlyyyyyy112/moon-qcow
 - 项目方向：MoonBit 系统工具与虚拟化存储基础设施
-- 是否为移植项目：否；依据公开 QCOW2 格式规范独立实现
-## 项目简介
+- 是否为移植项目：否，依据公开 QCOW2 格式规范独立实现
 
-QCOW2 是 QEMU/KVM 等虚拟化环境广泛使用的磁盘镜像格式。MoonBit 程序处理这类镜像时，往往需要调用外部工具或接入其他语言实现。MoonQCOW 提供一个以 MoonBit 实现的只读 QCOW2 解析库和 Node.js 命令行工具，使上层程序能够直接读取客户机逻辑字节、查看镜像映射，并基于脏位图选择增量备份范围。库提供变更范围选择与增量复制接口，备份链管理和完整恢复流程由上层应用实现。项目不修改原始镜像；对超出当前支持范围的加密、外部数据文件和损坏状态会明确拒绝。
-## 核心功能与实现计划
+**项目简介**
+MoonQCOW 提供 MoonBit QCOW2 只读解析库和 Node.js 命令行工具，用于读取虚拟磁盘逻辑数据、查看映射、导出 RAW 镜像，并依据脏位图选择增量备份范围。项目不修改源镜像；备份链管理和完整恢复由上层应用负责。
 
-- 解析 QCOW2 v2/v3 头部、L1/L2 表、扩展 L2 子簇、零簇和 backing 文件链，提供按偏移读取与逻辑映射查询；
-- 支持 raw/qcow2 backing 链、DEFLATE 压缩簇、内部快照目录，以及按快照 ID 读取虚拟磁盘内容；
-- 解析 1/2/4/8/16/32/64 位引用计数与持久化脏位图，提供元数据、映射、引用和位图的边界校验与审计报告；
-- 提供范围集合、增量复制游标、RAW 导出、镜像比较、稀疏零块跳过和扇区读取适配器，供备份、迁移与诊断工具复用；
-- 提供 `info`、`map`、`audit`、`read`、`export-raw`、`compare`、`snapshots`、`bitmaps` 与 `dirty` 等命令，Node.js 层仅负责受限文件 I/O；
-- 使用 QEMU 生成独立测试镜像，并以逐字节读取、非对齐读取、backing 链、快照、脏位图和 4 GiB 以上偏移等场景进行对照验证。
-## 预期验收产物
+**核心功能与验收产物**
+- 解析 QCOW2 v2/v3、标准及扩展 L2、零簇、raw/qcow2 backing 链、内部快照和持久化脏位图。
+- 支持 DEFLATE 与 zstd 压缩簇；提供逻辑读取、映射审计、RAW 导出、镜像比较和增量范围复制。
+- 交付 MoonBit 库、Node.js CLI、中文 README、示例、核心测试和 GitHub Actions；使用 QEMU 生成镜像并逐字节对照。
 
-- 可通过 `moon add xlyyyyyy112/moon-qcow` 使用的 MoonBit 库，以及可复现的 Node.js 命令行示例；
-- 覆盖核心读路径、异常边界和公共 API 的 MoonBit 测试，配套 Linux、macOS、Windows 三平台 CI；
-- QEMU 对照测试脚本及结果报告，确保导出 RAW 内容和查询结果可复现；
-- 发布到 Mooncakes，提供中文 README、最小运行示例和 Apache-2.0 许可证。
-## 参考与开源说明
+**只读兼容目标与边界**
+- 目标范围是上述列明的 QCOW2 只读特性，不承诺兼容所有规范有效镜像；具体矩阵见仓库 `docs/只读兼容范围.md`。
+- zstd v3 镜像按单簇有界解压并做 QEMU 对照；AES/LUKS 加密和外部数据文件明确报不支持，不请求密钥或自动打开外置文件。
+- dirty/corrupt、未知不兼容特性、未知压缩类型、损坏或超限数据均拒绝读取，不以零填充伪装成功；backing 读取须显式提供 source，CLI 需 `--allow-backing`。
 
-项目参考 QEMU 的 [QCOW2 互操作格式规范](https://www.qemu.org/docs/master/interop/qcow2.html) 与[持久化脏位图说明](https://www.qemu.org/docs/master/interop/bitmaps.html)，不复制 QEMU 的 GPL 实现代码。随机读取设计参考 [lima-vm/go-qcow2reader](https://github.com/lima-vm/go-qcow2reader)（Apache-2.0）；DEFLATE 解压依赖 `moonbit-community/flate`（Apache-2.0）。本项目采用 Apache-2.0 许可证。
+**参考与许可说明**
+依据 [QEMU QCOW2 格式规范](https://www.qemu.org/docs/master/interop/qcow2.html) 实现，不复制其 GPL 代码。DEFLATE 和 zstd 分别使用 `moonbit-community/flate`、`gaato/zstd`（Apache-2.0）；本项目采用 Apache-2.0。

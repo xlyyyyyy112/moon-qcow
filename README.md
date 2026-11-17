@@ -4,14 +4,16 @@
 
 这个库适合离线镜像转换、备份数据读取，以及文件系统工具的底层数据接入。QCOW2 的簇映射、backing 链、快照、引用计数和脏位图处理由 MoonBit 完成；文件命令行使用 Node.js 的同步随机 I/O。读取已有镜像时不会调用 QEMU，QEMU 只在独立对照测试中使用。
 
-源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。已发布到 Mooncakes，版本为 `0.1.0`。
+源码仓库：[xlyyyyyy112/moon-qcow](https://github.com/xlyyyyyy112/moon-qcow)。修复版发布到 Mooncakes 的版本为 `0.1.1`。
+
+本项目的只读兼容目标、加密/外部数据文件/zstd 镜像的处理方式和拒绝条件见[只读兼容范围](docs/只读兼容范围.md)。支持范围按格式特性明确限定，不承诺打开每一种规范有效的 QCOW2 镜像。
 
 ## 安装
 
 在已有 MoonBit 项目中添加依赖：
 
 ```sh
-moon add xlyyyyyy112/moon-qcow@0.1.0
+moon add xlyyyyyy112/moon-qcow@0.1.1
 ```
 
 随后在调用方 `moon.pkg` 中导入 `"xlyyyyyy112/moon-qcow" @qcow`。运行本仓库的命令行和示例时，先克隆仓库并更新依赖：
@@ -80,14 +82,14 @@ let cursor = image.copy_cursor(0UL, image.virtual_size())
 
 - QCOW2 v2/v3、512 字节至 2 MiB 簇、64 位逻辑偏移。
 - 标准 L1/L2、扩展 L2 子簇分配、显式零簇和 backing EOF 补零。
-- raw/qcow2 backing 链；DEFLATE 压缩簇的有界解压。
+- raw/qcow2 backing 链；DEFLATE 与 zstd 压缩簇的有界解压。
 - 内部快照目录及按 ID 读取；活动映射和解析 backing 后的映射。
 - 元数据区域、反向引用、分配统计、1/2/4/8/16/32/64 位引用计数。
 - 持久化脏位图目录、有效性检查、变更区间和增量复制选择。
 - 分块 RAW 导出、逻辑字节比较、区间索引、扇区读取适配。
 - 配置化读缓冲、缓存、链深度和扫描上限，失败时返回类型化错误。
 
-不支持镜像写入、修复、AES/LUKS 加密、zstd 压缩、外部数据文件；遇到相应特性明确报错。dirty/corrupt 标志也会被拒绝，不尝试恢复活动中或损坏镜像。
+不支持镜像写入、修复、AES/LUKS 加密或外部数据文件；遇到相应特性明确报错。未知压缩类型以及 dirty/corrupt 标志也会被拒绝，不尝试恢复活动中或损坏镜像。完整只读兼容边界与场景处理见[兼容范围文档](docs/只读兼容范围.md)。
 
 `audit` 检查活动映射、元数据重叠以及被引用簇的非零引用计数，**不等同于 `qemu-img check`**。`check-refcounts` 能重建无快照、无持久化位图、无 VM 状态分配的引用关系；不支持的所有权范围会拒绝检查，不会假报完整通过。内部快照的 VM 内存状态不属于导出的虚拟磁盘内容。
 
@@ -113,4 +115,4 @@ python scripts/count_lines.py
 
 本项目采用 Apache-2.0，独立依据 [QEMU QCOW2 格式规范](https://www.qemu.org/docs/master/interop/qcow2.html) 和 [持久化脏位图说明](https://www.qemu.org/docs/master/interop/bitmaps.html) 实现。未复制 QEMU 的 GPL 实现代码或文档正文。
 
-设计参考 [lima-vm/go-qcow2reader](https://github.com/lima-vm/go-qcow2reader) 的随机读取定位（Apache-2.0），不宣称与其全部功能等价。DEFLATE 解压复用 [moonbit-community/flate](https://github.com/moonbit-community/flate) 0.10.0（Apache-2.0），不将依赖代码计入本项目实现行数。QEMU 8.2.2 作为外部测试工具使用，不随库分发。
+设计参考 [lima-vm/go-qcow2reader](https://github.com/lima-vm/go-qcow2reader) 的随机读取定位（Apache-2.0），不宣称与其全部功能等价。DEFLATE 解压复用 [moonbit-community/flate](https://github.com/moonbit-community/flate) 0.10.0，zstd 解压使用 [gaato/zstd](https://github.com/gaato/codecs.mbt) 0.5.0，均为 Apache-2.0；不将依赖代码计入本项目实现行数。QEMU 作为外部测试工具使用，不随库分发。

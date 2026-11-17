@@ -355,7 +355,15 @@ pub fn Image::read_at(
           extent.physical.unwrap(),
           extent.stored_length,
         )
-        let inflated = inflate_cluster(compressed, self.cluster_size())
+        let inflated = if self.header.zstd_compression {
+          inflate_zstd_cluster(
+            compressed,
+            self.cluster_size(),
+            self.header.cluster_bits,
+          )
+        } else {
+          inflate_cluster(compressed, self.cluster_size())
+        }
         let inside = (position % self.cluster_size().to_uint64()).to_int()
         for i = 0; i < count; i = i + 1 {
           result.push(inflated[inside + i])

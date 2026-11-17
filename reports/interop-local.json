@@ -62,6 +62,16 @@
       "audit": true
     },
     {
+      "name": "zstd",
+      "bytes": 8388608,
+      "sha256": "4f85b8cb88154216ee23a102a5c37ea483c53dc306750ebec1c23cd9eec9c9b8",
+      "compare": true,
+      "sparse_export": true,
+      "unaligned_reads": 4,
+      "resolved_map": true,
+      "audit": true
+    },
+    {
       "name": "backing-zero-growth",
       "bytes": 10485760,
       "sha256": "cd1e450bce530072184f3a4738a883de60c7a038b5eafe79fb5e3562d208b03a",
@@ -111,7 +121,7 @@
       "read": true
     }
   ],
-  "image_cases": 12,
-  "negative_checks": 6,
-  "elapsed_seconds": 46.313
+  "image_cases": 13,
+  "negative_checks": 7,
+  "elapsed_seconds": 48.594
 }

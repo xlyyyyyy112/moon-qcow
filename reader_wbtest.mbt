@@ -231,6 +231,55 @@ test "compressed raw DEFLATE roundtrip and output limit" {
 }
 
 ///|
+test "compressed Zstandard cluster reads one bounded QCOW2 frame" {
+  let data = fixture()
+  put(data, 72, 8, 8UL)
+  put(data, 100, 4, 112UL)
+  data[104] = 1U.to_byte()
+  let payload = Bytes::make(512, b'Z')
+  let compressed = @zstd.compress(payload[:], checksum=false)
+  assert_true(compressed.length() < 512)
+  for i = 0; i < compressed.length(); i = i + 1 {
+    data[5 * 512 + i] = compressed[i]
+  }
+  put(data, 4 * 512, 8, 0x4000000000000000UL | (5 * 512).to_uint64())
+  let image = open(Bytes::from_array(data))
+  assert_eq(image.read_at(13UL, 201), Bytes::make(201, b'Z'))
+
+  let wrong = @zstd.compress(Bytes::make(513, b'Z')[:], checksum=false)
+  for i = 0; i < wrong.length(); i = i + 1 {
+    data[5 * 512 + i] = wrong[i]
+  }
+  let oversized = open(Bytes::from_array(data))
+  assert_true(fails(() => ignore(oversized.read_at(0UL, 1))))
+}
+
+///|
+test "zstd compression feature bit and header field must agree" {
+  let valid = fixture()
+  put(valid, 72, 8, 8UL)
+  put(valid, 100, 4, 112UL)
+  valid[104] = 1U.to_byte()
+  ignore(open(Bytes::from_array(valid)))
+
+  let missing = fixture()
+  put(missing, 72, 8, 8UL)
+  put(missing, 100, 4, 112UL)
+  assert_true(fails(() => ignore(open(Bytes::from_array(missing)))))
+
+  let unflagged = fixture()
+  put(unflagged, 100, 4, 112UL)
+  unflagged[104] = 1U.to_byte()
+  assert_true(fails(() => ignore(open(Bytes::from_array(unflagged)))))
+
+  let unknown_type = fixture()
+  put(unknown_type, 72, 8, 8UL)
+  put(unknown_type, 100, 4, 112UL)
+  unknown_type[104] = 2U.to_byte()
+  assert_true(fails(() => ignore(open(Bytes::from_array(unknown_type)))))
+}
+
+///|
 test "copy cursor failure leaves failed chunk retryable" {
   let image = image_fixture()
   let cursor = image.copy_cursor(0UL, 1024UL, chunk_size=100)

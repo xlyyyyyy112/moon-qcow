@@ -1,4 +1,5 @@
 ///|
+#derive(Debug)
 pub(all) suberror QcowError {
   Invalid(String)
   Unsupported(String)
@@ -6,7 +7,7 @@ pub(all) suberror QcowError {
   MissingBacking
   LimitExceeded
   Io(String)
-} derive(Debug)
+}
 
 ///|
 #deprecated

@@ -17,6 +17,7 @@ pub(all) struct Header {
   autoclear : UInt64
   refcount_order : Int32
   header_length : Int32
+  priv zstd_compression : Bool
 }
 
 ///|
@@ -70,6 +71,7 @@ pub fn inspect_header(
   let mut autoclear = 0UL
   let mut refcount_order = 4
   let mut header_length = 72
+  let mut zstd_compression = false
   if version == 3 {
     let rest = source.read_at(72UL, 32)
     incompatible = integer(rest, 0, 8)
@@ -85,16 +87,30 @@ pub fn inspect_header(
       raise Invalid("invalid v3 header length")
     }
     header_length = length.to_int()
-    if (incompatible & 0xffffffffffffffefUL) != 0UL {
-      raise Unsupported(
-        "dirty, corrupt, external-data, non-deflate, or unknown incompatible feature",
-      )
+    if (incompatible & 7UL) != 0UL {
+      raise Unsupported("dirty, corrupt, or external-data image")
+    }
+    if (incompatible & 0xffffffffffffffe7UL) != 0UL {
+      raise Unsupported("unknown incompatible feature")
     }
     if (incompatible & 16UL) != 0UL && cluster_bits < 14 {
       raise Invalid("extended L2 requires cluster_bits >= 14")
     }
-    if length > 104UL && source.integer(104UL, 1) != 0UL {
-      raise Unsupported("non-deflate compression")
+    let compression_type = if length > 104UL {
+      source.integer(104UL, 1)
+    } else {
+      0UL
+    }
+    if (incompatible & 8UL) != 0UL {
+      if length < 112UL || compression_type == 0UL {
+        raise Invalid("compression type feature lacks a nonzero type")
+      }
+      if compression_type != 1UL {
+        raise Unsupported("unknown QCOW2 compression type")
+      }
+      zstd_compression = true
+    } else if compression_type != 0UL {
+      raise Invalid("compression type requires the incompatible feature bit")
     }
   }
   let l1_entries = integer(first, 36, 4)
@@ -163,6 +179,7 @@ pub fn inspect_header(
     autoclear,
     refcount_order,
     header_length,
+    zstd_compression,
   }
 }
 

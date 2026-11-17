@@ -95,16 +95,17 @@ def main():
         pattern[65536:131072] = bytes(65536)
         pattern[2*1024*1024-13:2*1024*1024+257] = b"x" * 270
         raw.write_bytes(pattern)
-        for name, options, compressed in [
-            ("v2-4k", "compat=0.10,cluster_size=4096", False),
-            ("v3-512", "compat=1.1,cluster_size=512", False),
-            ("v3-64k", "compat=1.1,cluster_size=65536", False),
-            ("v3-2m", "compat=1.1,cluster_size=2097152", False),
-            ("extended-l2", "compat=1.1,extended_l2=on,cluster_size=16384", False),
-            ("deflate", "compat=1.1,cluster_size=65536", True),
+        for name, options, compression in [
+            ("v2-4k", "compat=0.10,cluster_size=4096", None),
+            ("v3-512", "compat=1.1,cluster_size=512", None),
+            ("v3-64k", "compat=1.1,cluster_size=65536", None),
+            ("v3-2m", "compat=1.1,cluster_size=2097152", None),
+            ("extended-l2", "compat=1.1,extended_l2=on,cluster_size=16384", None),
+            ("deflate", "compat=1.1,cluster_size=65536", "deflate"),
+            ("zstd", "compat=1.1,cluster_size=65536,compression_type=zstd", "zstd"),
         ]:
             image = directory / (name + ".qcow2")
-            compress = ["-c"] if compressed else []
+            compress = ["-c"] if compression is not None else []
             qemu("qemu-img", "convert", "-f", "raw", "-O", "qcow2", "-o", options,
                  *compress, raw, image)
             cases.append(test_image(directory, name, image, raw))
@@ -160,6 +161,7 @@ def main():
         for name, start, replacement in [
             ("bad-magic", 0, b"NOPE"),
             ("encrypted", 32, (2).to_bytes(4, "big")),
+            ("external-data", 72, (1 << 2).to_bytes(8, "big")),
             ("unknown-feature", 72, (1 << 63).to_bytes(8, "big")),
         ]:
             image = directory / (name + ".qcow2")
@@ -177,7 +179,7 @@ def main():
         cases.append({"name": "offset-above-4GiB", "read": True})
     report = {"qemu": qemu("qemu-img", "--version").splitlines()[0],
               "cases": cases, "image_cases": len(cases),
-              "negative_checks": 6, "elapsed_seconds": round(time.monotonic()-started, 3)}
+              "negative_checks": 7, "elapsed_seconds": round(time.monotonic()-started, 3)}
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")

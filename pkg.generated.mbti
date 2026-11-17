@@ -3,6 +3,7 @@ package "xlyyyyyy112/moon-qcow"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -39,6 +40,7 @@ pub fn parse_size(String) -> UInt64 raise QcowError
 pub fn region_union_size(ArrayView[HostRegion]) -> UInt64 raise QcowError
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror QcowError {
   Invalid(String)
   Unsupported(String)
@@ -46,7 +48,7 @@ pub(all) suberror QcowError {
   MissingBacking
   LimitExceeded
   Io(String)
-} derive(@debug.Debug)
+}
 pub fn QcowError::message(Self) -> String
 #deprecated
 pub fn QcowError::to_repr(Self) -> @debug.Repr
@@ -62,7 +64,7 @@ pub(all) struct AllocationStats {
   compressed_storage_bytes : UInt64
   mapped_records : Int32
 }
-pub fn AllocationStats::json(Self) -> Json
+pub fn AllocationStats::json(Self) -> @json.Json
 
 pub(all) struct AuditIssue {
   severity : String
@@ -70,7 +72,7 @@ pub(all) struct AuditIssue {
   offset : UInt64
   message : String
 }
-pub fn AuditIssue::json(Self) -> Json
+pub fn AuditIssue::json(Self) -> @json.Json
 
 pub(all) struct AuditReport {
   issues : Array[AuditIssue]
@@ -78,7 +80,7 @@ pub(all) struct AuditReport {
   mappings : Int32
   complete : Bool
 }
-pub fn AuditReport::json(Self) -> Json
+pub fn AuditReport::json(Self) -> @json.Json
 pub fn AuditReport::ok(Self) -> Bool
 
 pub(all) enum Backing {
@@ -108,7 +110,7 @@ pub fn BackupPlan::chunk_count(Self, UInt64) -> UInt64 raise QcowError
 pub fn BackupPlan::complement(Self) -> Self raise QcowError
 pub fn BackupPlan::contains(Self, UInt64) -> Bool
 pub fn BackupPlan::intersection(Self, Self) -> Self raise QcowError
-pub fn BackupPlan::json(Self) -> Json
+pub fn BackupPlan::json(Self) -> @json.Json
 pub fn BackupPlan::new(UInt64, ArrayView[Difference]) -> Self raise QcowError
 pub fn BackupPlan::ranges(Self) -> Array[Difference]
 pub fn BackupPlan::subtract(Self, Self) -> Self raise QcowError
@@ -131,7 +133,7 @@ pub(all) struct BitmapValidation {
   dirty_granules : UInt64
   allocated_blocks : UInt64
 }
-pub fn BitmapValidation::json(Self) -> Json
+pub fn BitmapValidation::json(Self) -> @json.Json
 
 pub struct BlockCache {
   blocks : Map[(UInt64, Int32), Bytes]
@@ -175,7 +177,7 @@ pub(all) struct CacheStats {
   hits : UInt64
   misses : UInt64
 }
-pub fn CacheStats::json(Self) -> Json
+pub fn CacheStats::json(Self) -> @json.Json
 
 pub(all) struct ChainLayer {
   depth : Int32
@@ -185,7 +187,7 @@ pub(all) struct ChainLayer {
   backing_filename : String?
   version : Int32
 }
-pub fn ChainLayer::json(Self) -> Json
+pub fn ChainLayer::json(Self) -> @json.Json
 
 pub(all) struct CompareReport {
   compared_bytes : UInt64
@@ -193,7 +195,7 @@ pub(all) struct CompareReport {
   ranges : Array[Difference]
   complete : Bool
 }
-pub fn CompareReport::json(Self) -> Json
+pub fn CompareReport::json(Self) -> @json.Json
 
 pub struct CopyCursor {
   image : Image
@@ -217,13 +219,13 @@ pub(all) struct CopyProgress {
   skipped_zero_bytes : UInt64
   complete : Bool
 }
-pub fn CopyProgress::json(Self) -> Json
+pub fn CopyProgress::json(Self) -> @json.Json
 
 pub(all) struct Difference {
   offset : UInt64
   length : UInt64
 }
-pub fn Difference::json(Self) -> Json
+pub fn Difference::json(Self) -> @json.Json
 
 pub(all) struct DirtyBitmap {
   name : String
@@ -237,7 +239,7 @@ pub(all) struct DirtyBitmap {
   consistent : Bool
 }
 pub fn DirtyBitmap::granularity(Self) -> UInt64
-pub fn DirtyBitmap::json(Self) -> Json
+pub fn DirtyBitmap::json(Self) -> @json.Json
 
 pub(all) struct Extent {
   offset : UInt64
@@ -246,7 +248,7 @@ pub(all) struct Extent {
   physical : UInt64?
   stored_length : Int32
 }
-pub fn Extent::json(Self) -> Json
+pub fn Extent::json(Self) -> @json.Json
 
 pub(all) enum ExtentKind {
   Data
@@ -261,7 +263,7 @@ pub(all) struct FeatureName {
   bit : Int32
   name : String
 }
-pub fn FeatureName::json(Self) -> Json
+pub fn FeatureName::json(Self) -> @json.Json
 
 pub(all) struct Header {
   version : Int32
@@ -280,11 +282,12 @@ pub(all) struct Header {
   autoclear : UInt64
   refcount_order : Int32
   header_length : Int32
+  // private fields
 }
 pub fn Header::cluster_count(Self) -> UInt64
 pub fn Header::cluster_size(Self) -> Int32
 pub fn Header::extended_l2(Self) -> Bool
-pub fn Header::json(Self) -> Json
+pub fn Header::json(Self) -> @json.Json
 pub fn Header::l2_entries(Self) -> UInt64
 
 pub(all) struct HeaderExtension {
@@ -292,14 +295,14 @@ pub(all) struct HeaderExtension {
   offset : UInt64
   data : Bytes
 }
-pub fn HeaderExtension::json(Self) -> Json
+pub fn HeaderExtension::json(Self) -> @json.Json
 
 pub(all) struct HostRegion {
   offset : UInt64
   length : UInt64
   role : String
 }
-pub fn HostRegion::json(Self) -> Json
+pub fn HostRegion::json(Self) -> @json.Json
 
 pub struct Image {
   source : Source
@@ -370,7 +373,7 @@ pub struct MapIndex {
   virtual_size : UInt64
   records : Array[Extent]
 }
-pub fn MapIndex::json(Self) -> Json
+pub fn MapIndex::json(Self) -> @json.Json
 pub fn MapIndex::lookup(Self, UInt64) -> Extent raise QcowError
 pub fn MapIndex::new(UInt64, ArrayView[Extent]) -> Self raise QcowError
 pub fn MapIndex::query(Self, UInt64, UInt64) -> Array[Extent] raise QcowError
@@ -395,7 +398,7 @@ pub(all) struct RefcountCheck {
   mismatches : Array[RefcountMismatch]
   complete : Bool
 }
-pub fn RefcountCheck::json(Self) -> Json
+pub fn RefcountCheck::json(Self) -> @json.Json
 pub fn RefcountCheck::ok(Self) -> Bool
 
 pub(all) struct RefcountMismatch {
@@ -403,14 +406,14 @@ pub(all) struct RefcountMismatch {
   stored : UInt64
   expected : UInt64
 }
-pub fn RefcountMismatch::json(Self) -> Json
+pub fn RefcountMismatch::json(Self) -> @json.Json
 
 pub(all) struct RefcountRun {
   offset : UInt64
   length : UInt64
   count : UInt64
 }
-pub fn RefcountRun::json(Self) -> Json
+pub fn RefcountRun::json(Self) -> @json.Json
 
 pub(all) struct RefcountStats {
   host_clusters : UInt64
@@ -419,7 +422,7 @@ pub(all) struct RefcountStats {
   shared_clusters : UInt64
   max_refcount : UInt64
 }
-pub fn RefcountStats::json(Self) -> Json
+pub fn RefcountStats::json(Self) -> @json.Json
 
 pub(all) struct Reference {
   guest_offset : UInt64
@@ -428,7 +431,7 @@ pub(all) struct Reference {
   physical_length : UInt64
   compressed : Bool
 }
-pub fn Reference::json(Self) -> Json
+pub fn Reference::json(Self) -> @json.Json
 
 pub(all) struct ResolvedExtent {
   offset : UInt64
@@ -438,7 +441,7 @@ pub(all) struct ResolvedExtent {
   stored_length : Int32
   depth : Int32
 }
-pub fn ResolvedExtent::json(Self) -> Json
+pub fn ResolvedExtent::json(Self) -> @json.Json
 
 pub(all) struct Snapshot {
   index : Int32
@@ -454,7 +457,7 @@ pub(all) struct Snapshot {
   entry_offset : UInt64
   entry_length : UInt64
 }
-pub fn Snapshot::json(Self) -> Json
+pub fn Snapshot::json(Self) -> @json.Json
 
 pub struct Source {
   size : UInt64
@@ -473,7 +476,7 @@ pub struct SourceMetrics {
   mut failed : UInt64
   mut largest : Int32
 }
-pub fn SourceMetrics::json(Self) -> Json
+pub fn SourceMetrics::json(Self) -> @json.Json
 pub fn SourceMetrics::new() -> Self
 pub fn SourceMetrics::reset(Self) -> Unit
 pub fn SourceMetrics::wrap(Self, Source) -> Source
