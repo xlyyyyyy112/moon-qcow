@@ -8,7 +8,7 @@ import {
 // Values
 pub fn create_file(String) -> FileState raise @moon-qcow.QcowError
 
-pub fn open_disk(String, allow_backing? : Bool, limits? : @moon-qcow.Limits) -> Disk raise @moon-qcow.QcowError
+pub fn open_disk(String, allow_backing? : Bool, external_data? : String, limits? : @moon-qcow.Limits) -> Disk raise @moon-qcow.QcowError
 
 pub fn open_file(String) -> FileState raise @moon-qcow.QcowError
 

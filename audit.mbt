@@ -148,7 +148,8 @@ pub fn Image::audit(
     }
     let extent = self.extent_at(position)
     let host = match (extent.kind, extent.physical) {
-      (Data, Some(value)) => Some((value, extent.length))
+      (Data, Some(value)) if self.data_source is None =>
+        Some((value, extent.length))
       (Compressed, Some(value)) =>
         Some((value, extent.stored_length.to_uint64()))
       _ => None
@@ -224,6 +225,9 @@ pub fn Image::references_to(
   host_offset : UInt64,
   host_length : UInt64,
 ) -> Array[Reference] raise QcowError {
+  if self.data_source is Some(_) {
+    raise Unsupported("reverse references for external data")
+  }
   self.source.check_range(host_offset, host_length)
   let result : Array[Reference] = []
   if host_length == 0UL {

@@ -17,9 +17,9 @@ MoonQCOW 提供 MoonBit QCOW2 只读解析库和 Node.js 命令行工具，用�
 - 交付 MoonBit 库、Node.js CLI、中文 README、示例、核心测试和 GitHub Actions；使用 QEMU 生成镜像并逐字节对照。
 
 **只读兼容目标与边界**
-- 目标范围是上述列明的 QCOW2 只读特性，不承诺兼容所有规范有效镜像；具体矩阵见仓库 `docs/只读兼容范围.md`。
-- zstd v3 镜像按单簇有界解压并做 QEMU 对照；AES/LUKS 加密和外部数据文件明确报不支持，不请求密钥或自动打开外置文件。
-- dirty/corrupt、未知不兼容特性、未知压缩类型、损坏或超限数据均拒绝读取，不以零填充伪装成功；backing 读取须显式提供 source，CLI 需 `--allow-backing`。
+- 最终目标是对所选 QCOW2 v2/v3 规范内合法、离线且一致的镜像提供完整的只读逻辑磁盘访问与 RAW 导出，包含加密、外部数据、压缩、基底链及规范允许的组合。写入和修复另属维护操作。
+- 已完成外部数据文件的 MoonBit 直接读取，覆盖 `data_file_raw=on/off`。独立 AES/LUKS 镜像目前由 QEMU 解密到临时 QCOW2，再由 MoonBit 读取和导出。原镜像的快照、映射、位图及加密与其他特性的组合仍待补齐。
+- 真实镜像的生成、读取及导出步骤见[只读兼容范围](docs/只读兼容范围.md)。测试对照非对齐片段及完整 RAW，并检查外置文件缺失和 LUKS 错误密钥，见[本地报告](reports/interop-local.json)。
 
 **参考与许可说明**
 依据 [QEMU QCOW2 格式规范](https://www.qemu.org/docs/master/interop/qcow2.html) 实现，不复制其 GPL 代码。DEFLATE 和 zstd 分别使用 `moonbit-community/flate`、`gaato/zstd`（Apache-2.0）；本项目采用 Apache-2.0。

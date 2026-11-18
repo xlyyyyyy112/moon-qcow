@@ -284,6 +284,7 @@ fn open_chain(
   files : Array[FileState],
   visited : Map[String, Bool],
   allow_backing : Bool,
+  external_data : @qcow.Source?,
   limits : @qcow.Limits,
 ) -> @qcow.Image raise @qcow.QcowError {
   if files.length() >= limits.max_chain {
@@ -299,7 +300,7 @@ fn open_chain(
   let source = file.source()
   let filename = @qcow.backing_filename(source, limits~)
   match filename {
-    None => @qcow.open_source(source, limits~)
+    None => @qcow.open_source(source, external_data?, limits~)
     Some(name) => {
       if !allow_backing {
         raise @qcow.MissingBacking
@@ -320,14 +321,14 @@ fn open_chain(
         }
         Some("qcow2") =>
           @qcow.Qcow(
-            open_chain(resolved, files, visited, allow_backing, limits),
+            open_chain(resolved, files, visited, allow_backing, None, limits),
           )
         _ =>
           raise @qcow.Unsupported(
             "automatic backing requires an explicit raw/qcow2 format extension",
           )
       }
-      @qcow.open_source(source, backing~, limits~)
+      @qcow.open_source(source, backing~, external_data?, limits~)
     }
   }
 }
@@ -337,6 +338,7 @@ fn open_chain(
 pub fn open_disk(
   path : String,
   allow_backing~ : Bool = false,
+  external_data? : String,
   limits~ : @qcow.Limits = @qcow.Limits::default(),
 ) -> Disk raise @qcow.QcowError {
   let files : Array[FileState] = []
@@ -345,7 +347,15 @@ pub fn open_disk(
       _ => ()
     }
   })
-  let image = open_chain(path, files, Map([]), allow_backing, limits)
+  let data = match external_data {
+    Some(path) => {
+      let file = open_file(path)
+      files.push(file)
+      Some(file.source())
+    }
+    None => None
+  }
+  let image = open_chain(path, files, Map([]), allow_backing, data, limits)
   { image, files, }
 }
 

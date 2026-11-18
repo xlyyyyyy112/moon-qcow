@@ -8,6 +8,7 @@ pub(all) enum Backing {
 ///|
 pub struct Image {
   source : Source
+  data_source : Source?
   header : Header
   backing : Backing?
   depth : Int32
@@ -28,10 +29,14 @@ pub fn open(
 pub fn open_source(
   source : Source,
   backing? : Backing,
+  external_data? : Source,
   limits~ : Limits = Limits::default(),
 ) -> Image raise QcowError {
   let header = inspect_header(source, limits~)
   ignore(header_extensions(source, limits~))
+  if ((header.incompatible & 4UL) != 0UL) != (external_data is Some(_)) {
+    raise Invalid("external data source must match the image feature flag")
+  }
   if header.backing_offset != 0UL && backing is None {
     raise MissingBacking
   }
@@ -56,6 +61,7 @@ pub fn open_source(
   }
   {
     source,
+    data_source: external_data,
     header,
     backing,
     depth,
@@ -190,6 +196,9 @@ pub fn Image::extent_at(
   let (entry, bitmap) = self.descriptor(position)
   let length = min64(cluster - inside, self.virtual_size() - position)
   if (entry & 0x4000000000000000UL) != 0UL {
+    if self.data_source is Some(_) {
+      raise Invalid("external data cannot contain compressed clusters")
+    }
     if bitmap != 0UL || (entry & 0x8000000000000000UL) != 0UL {
       raise Invalid("compressed cluster flags")
     }
@@ -220,10 +229,13 @@ pub fn Image::extent_at(
   if physical % cluster != 0UL {
     raise Invalid("unaligned data cluster")
   }
-  if physical == 0UL && (entry & 0x8000000000000000UL) != 0UL {
+  let external = self.data_source is Some(_)
+  let copied = (entry & 0x8000000000000000UL) != 0UL
+  let has_data = physical != 0UL || (external && copied)
+  if !external && physical == 0UL && copied {
     raise Invalid("copied flag without data cluster")
   }
-  let mut kind = if physical == 0UL { Unallocated } else { Data }
+  let mut kind = if has_data { Data } else { Unallocated }
   let mut final_length = length
   if self.header.extended_l2() {
     if (entry & 1UL) != 0UL {
@@ -234,7 +246,7 @@ pub fn Image::extent_at(
     if (allocated & zero) != 0UL {
       raise Invalid("subcluster both allocated and zero")
     }
-    if allocated != 0UL && physical == 0UL {
+    if allocated != 0UL && !has_data {
       raise Invalid("subcluster allocation without host cluster")
     }
     let sub_size = cluster / 32UL
@@ -254,7 +266,14 @@ pub fn Image::extent_at(
     kind = Zero
   }
   let host = if kind is Data {
-    self.source.check_range(physical, cluster)
+    if external && physical != position - inside {
+      raise Invalid("external data offset differs from guest cluster offset")
+    }
+    if external {
+      self.payload_source().check_range(physical + inside, final_length)
+    } else {
+      self.source.check_range(physical, cluster)
+    }
     Some(physical + inside)
   } else {
     None
@@ -326,7 +345,7 @@ pub fn Image::read_at(
     match extent.kind {
       Data => {
         let physical = extent.physical.unwrap()
-        for byte in self.source.read_at(physical, count) {
+        for byte in self.payload_source().read_at(physical, count) {
           result.push(byte)
         }
       }
@@ -373,4 +392,12 @@ pub fn Image::read_at(
     done = done + count
   }
   Bytes::from_array(result)
+}
+
+///|
+fn Image::payload_source(self : Image) -> Source {
+  match self.data_source {
+    Some(source) => source
+    None => self.source
+  }
 }

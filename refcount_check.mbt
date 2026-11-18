@@ -42,6 +42,9 @@ pub fn Image::check_refcounts(
   self : Image,
   max_mismatches~ : Int32 = 1000,
 ) -> RefcountCheck raise QcowError {
+  if self.data_source is Some(_) {
+    raise Unsupported("exact refcount reconstruction for external data")
+  }
   if max_mismatches <= 0 {
     raise Invalid("invalid refcount mismatch limit")
   }

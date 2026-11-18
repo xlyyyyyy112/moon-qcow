@@ -8,12 +8,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import time
+import sys
+
+from encrypted import qemu_command, qemu_path, secret_option
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / "_build/js/release/build/cmd/main/main.js"
@@ -30,19 +32,8 @@ def run(args, expected=0):
 
 
 def qemu(tool, *args):
-    if shutil.which(tool):
-        return run([tool, *args])
-    if os.name != "nt" or not shutil.which("wsl"):
-        raise RuntimeError(f"Install {tool} (qemu-utils) first")
-    converted = []
-    for arg in args:
-        if isinstance(arg, Path):
-            absolute = arg.resolve()
-            converted.append("/mnt/" + absolute.drive[0].lower() +
-                             absolute.as_posix()[2:])
-        else:
-            converted.append(arg)
-    return run(["wsl", "-d", "Ubuntu", "--", tool, *converted])
+    return run(qemu_command(tool) +
+               [qemu_path(arg) if isinstance(arg, Path) else arg for arg in args])
 
 
 def cli(command, image, *args, expected=0, decode=True):
@@ -50,8 +41,10 @@ def cli(command, image, *args, expected=0, decode=True):
     return json.loads(output) if decode else output
 
 
-def test_image(directory, name, image, raw, *, backing=False, snapshot=None):
+def test_image(directory, name, image, raw, *, backing=False, snapshot=None, external_data=None):
     flags = ["--allow-backing"] if backing else []
+    if external_data is not None:
+        flags += ["--external-data", external_data]
     if snapshot is not None:
         flags += ["--snapshot", snapshot]
     report = cli("compare", image, raw, "--chunk-size", "65521", *flags)
@@ -111,6 +104,38 @@ def main():
             cases.append(test_image(directory, name, image, raw))
             checked = cli("check-refcounts", image)
             assert checked["ok"] and checked["complete"], checked
+        for mode in ("off", "on"):
+            name = "external-data-raw-" + mode
+            image = directory / (name + ".qcow2")
+            payload = directory / (name + ".data")
+            image_opts = "data_file=" + qemu_path(payload).replace(",", ",,")
+            qemu("qemu-img", "convert", "-f", "raw", "-O", "qcow2", "-o",
+                 f"{image_opts},data_file_raw={mode}", raw, image)
+            cases.append(test_image(directory, name, image, raw, external_data=payload))
+            cli("info", image, expected=2, decode=False)
+        key = directory / "test-key"
+        key.write_bytes(b"synthetic-test-key")
+        bad_key = directory / "wrong-key"
+        bad_key.write_bytes(b"wrong-synthetic-key")
+        for encryption in ("luks", "aes"):
+            image = directory / (encryption + ".qcow2")
+            qemu("qemu-img", "convert", "--object", secret_option(key), "-f", "raw",
+                 "-O", "qcow2", "-o", f"encrypt.format={encryption},encrypt.key-secret=key",
+                 raw, image)
+            adapter = [sys.executable, ROOT / "scripts/encrypted.py", image]
+            output = directory / (encryption + ".export.raw")
+            run([*adapter, "--key-file", key, "export-raw", output])
+            assert output.read_bytes() == bytes(pattern)
+            slice_path = directory / (encryption + ".slice")
+            run([*adapter, "--key-file", key, "read", "4093", "8199", slice_path])
+            assert slice_path.read_bytes() == pattern[4093:12292]
+            if encryption == "luks":
+                rejected = directory / "wrong-key.raw"
+                run([*adapter, "--key-file", bad_key, "export-raw", rejected], expected=2)
+                assert not rejected.exists()
+            cases.append({"name": "encrypted-" + encryption, "export": True,
+                          "unaligned_read": True,
+                          "sha256": hashlib.sha256(output.read_bytes()).hexdigest()})
         base = directory / "v3-64k.qcow2"
         overlay = directory / "overlay.qcow2"
         qemu("qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-b", base.name, overlay, "10M")
@@ -179,7 +204,7 @@ def main():
         cases.append({"name": "offset-above-4GiB", "read": True})
     report = {"qemu": qemu("qemu-img", "--version").splitlines()[0],
               "cases": cases, "image_cases": len(cases),
-              "negative_checks": 7, "elapsed_seconds": round(time.monotonic()-started, 3)}
+              "negative_checks": 10, "elapsed_seconds": round(time.monotonic()-started, 3)}
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")

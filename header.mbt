@@ -87,10 +87,10 @@ pub fn inspect_header(
       raise Invalid("invalid v3 header length")
     }
     header_length = length.to_int()
-    if (incompatible & 7UL) != 0UL {
-      raise Unsupported("dirty, corrupt, or external-data image")
+    if (incompatible & 3UL) != 0UL {
+      raise Unsupported("dirty or corrupt image")
     }
-    if (incompatible & 0xffffffffffffffe7UL) != 0UL {
+    if (incompatible & 0xffffffffffffffe3UL) != 0UL {
       raise Unsupported("unknown incompatible feature")
     }
     if (incompatible & 16UL) != 0UL && cluster_bits < 14 {
@@ -150,6 +150,13 @@ pub fn inspect_header(
   let snapshot_count = integer(first, 60, 4)
   if snapshot_count > limits.max_snapshots.to_uint64() {
     raise LimitExceeded
+  }
+  if (incompatible & 4UL) != 0UL && snapshot_count != 0UL {
+    raise Invalid("external data cannot have internal snapshots")
+  }
+  if (autoclear & 2UL) != 0UL &&
+    ((incompatible & 4UL) == 0UL || backing_offset != 0UL) {
+    raise Invalid("invalid raw external data feature")
   }
   let snapshot_offset = integer(first, 64, 8)
   if snapshot_count > 0UL {

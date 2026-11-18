@@ -106,6 +106,7 @@ pub fn Image::open_snapshot(self : Image, id : String) -> Image raise QcowError 
       }
       return {
         source: self.source,
+        data_source: self.data_source,
         header,
         backing: self.backing,
         depth: self.depth,

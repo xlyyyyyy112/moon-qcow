@@ -26,7 +26,7 @@ fn usage() -> String {
   "  compare <RAW文件>             逐字节对照\n" +
   "  hexdump <偏移> <长度>         十六进制查看（最多64KiB）\n" +
   "  refs <物理偏移> <长度>        查询活动镜像反向引用\n" +
-  "通用选项: --allow-backing --snapshot <ID> --chunk-size <字节数>\n" +
+  "通用选项: --allow-backing --external-data <path> --snapshot <ID> --chunk-size <字节数>\n" +
   "支持十进制/0x十六进制，以及 KiB/MiB/GiB/TiB 后缀。\n" +
   "只处理稳定的离线镜像。输出文件必须不存在。\n" +
   "退出码: 0成功，1对照不同或审计有问题，2参数/格式/I/O错误。"
@@ -38,6 +38,7 @@ struct Options {
   path : String
   positional : Array[String]
   allow_backing : Bool
+  external_data : String?
   snapshot : String?
   chunk_size : Int32
   sparse : Bool
@@ -53,6 +54,7 @@ fn parse_args(args : Array[String]) -> Options raise @qcow.QcowError {
   let positional : Array[String] = []
   let seen : Map[String, Bool] = Map([])
   let mut allow_backing = false
+  let mut external_data = None
   let mut snapshot = None
   let mut chunk_size = 1048576
   let mut sparse = false
@@ -81,13 +83,15 @@ fn parse_args(args : Array[String]) -> Options raise @qcow.QcowError {
       "--sparse" => sparse = true
       "--resolved" => resolved = true
       "--verify-data" => verify_data = true
-      "--snapshot" | "--chunk-size" => {
+      "--snapshot" | "--chunk-size" | "--external-data" => {
         index = index + 1
         if index >= args.length() {
           raise @qcow.Invalid("missing option value: " + arg)
         }
         if arg == "--snapshot" {
           snapshot = Some(args[index])
+        } else if arg == "--external-data" {
+          external_data = Some(args[index])
         } else {
           let size = @qcow.parse_size(args[index])
           if size == 0UL || size > 16777216UL {
@@ -114,6 +118,7 @@ fn parse_args(args : Array[String]) -> Options raise @qcow.QcowError {
     path: args[2],
     positional,
     allow_backing,
+    external_data,
     snapshot,
     chunk_size,
     sparse,
@@ -298,6 +303,7 @@ fn run(args : Array[String]) -> Int32 raise @qcow.QcowError {
   let disk = @nodeio.open_disk(
     options.path,
     allow_backing=options.allow_backing,
+    external_data?=options.external_data,
   )
   defer (disk.close() catch { _ => () })
   let image = match options.snapshot {

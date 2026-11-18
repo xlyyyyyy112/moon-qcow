@@ -33,7 +33,7 @@ pub fn merge_differences(ArrayView[Difference]) -> Array[Difference] raise QcowE
 
 pub fn open(Bytes, backing? : Backing, limits? : Limits) -> Image raise QcowError
 
-pub fn open_source(Source, backing? : Backing, limits? : Limits) -> Image raise QcowError
+pub fn open_source(Source, backing? : Backing, external_data? : Source, limits? : Limits) -> Image raise QcowError
 
 pub fn parse_size(String) -> UInt64 raise QcowError
 
@@ -306,6 +306,7 @@ pub fn HostRegion::json(Self) -> @json.Json
 
 pub struct Image {
   source : Source
+  data_source : Source?
   header : Header
   backing : Backing?
   depth : Int32
